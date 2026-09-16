@@ -1,0 +1,58 @@
+name: cleanup-merged-branches
+
+# Keeps the remote at a single canonical `main`. Hosted/web sessions work on
+# disposable `claude/**` branches and converge their work into `main`, but those
+# sessions cannot delete refs themselves (the git transport returns 403). This
+# workflow runs with the repo-scoped GITHUB_TOKEN — which CAN delete refs — and
+# removes any `claude/**` branch whose commits are already fully contained in
+# `main`. It never touches `main` and never deletes an unmerged branch, so an
+# in-progress parallel session's branch is safe until its work lands.
+#
+# Runs once a day (and on-demand). Convergence to `main` is what matters and is
+# handled by the agent per CLAUDE.md → Branch Policy; this job is only after-the-
+# fact tidiness, so it does not need to fire on every push. A merged session
+# branch is removed within a day; a branch left behind is unmerged and kept.
+
+on:
+  schedule:
+    - cron: '0 7 * * *'      # daily, 07:00 UTC
+  workflow_dispatch: {}        # manual on-demand run
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cleanup-merged-branches
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Delete merged claude/** branches
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
+          deleted=0
+          while read -r ref; do
+            branch="${ref#origin/}"
+            case "$branch" in
+              claude/*) ;;        # only auto-generated session branches
+              *) continue ;;
+            esac
+            if git merge-base --is-ancestor "origin/$branch" origin/main; then
+              echo "Deleting merged branch: $branch"
+              if git push origin --delete "$branch"; then
+                deleted=$((deleted+1))
+              else
+                echo "  (could not delete $branch)"
+              fi
+            else
+              echo "Keeping unmerged branch: $branch"
+            fi
+          done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin)
+          echo "Deleted $deleted merged session branch(es)."

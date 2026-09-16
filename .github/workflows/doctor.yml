@@ -1,0 +1,23 @@
+name: doctor
+
+# Version-controlled backstop for the per-turn protocol step. Local git hooks
+# are not installed in fresh or hosted clones, so drift enforcement also runs
+# here on every push and PR to main. Session branches (claude/**) are checked
+# too, so red is caught before the fast-forward to main, not after.
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the doctor
+        run: python3 scripts/memoir_doctor.py
+      - name: Run unit tests
+        run: python3 -m unittest discover -s tests -v
