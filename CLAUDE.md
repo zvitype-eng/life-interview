@@ -28,4 +28,4 @@ First session only: read `interview/agent-protocol.md` in full before asking any
 
 ## Shortcut
 
-`resume interview` → restore from files (never chat memory), run the doctor, report state, wait. `resume interview and continue` → the same, then derive, validate, and ask exactly one question. Determine the next question from `state.md`; never hard-code a number.
+`resume interview` (or a close equivalent) → restore from files (never chat memory), run the doctor, report state in a few lines, then derive, validate, and ask exactly one question. Determine the next question from `state.md`; never hard-code a number. The subject can ignore the question or say "just report" if they only wanted the status.

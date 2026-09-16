@@ -195,7 +195,7 @@ The generative counterpart to the coverage sweep: what links, what repeats, what
 
 ## Resume Protocol (start of every session)
 
-`resume interview` → load state from files, never from chat memory; run the doctor first and repair any `FAIL` before trusting anything; report phase, last answered, next question, and any pending turn; then wait. `resume interview and continue` → the same, then derive one fresh question, validate it, and ask it.
+`resume interview` (or a close equivalent) → load state from files, never from chat memory; run the doctor first and repair any `FAIL` before trusting anything; report phase, last answered, next question, and any pending turn in a few lines; then derive one fresh question, validate it, and ask it. There is no separate "report only" shortcut: the report comes first anyway, and a subject who only wanted the status can ignore the question or say "just report".
 
 1. Run `python3 scripts/memoir_doctor.py`.
 2. Read `state.md`, then `_resume.md`.
